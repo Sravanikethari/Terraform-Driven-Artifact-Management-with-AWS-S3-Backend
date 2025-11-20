@@ -9,7 +9,13 @@ This project demonstrates a complete end-to-end CI/CD pipeline for a Java-based 
 
 3. Introduction
 
-For Java applications, CI/CD ensures fast, reliable, and consistent delivery. Jenkins orchestrates the workflow, Maven handles builds, Git manages version control, and AWS provides secure and scalable cloud resources. Terraform enables Infrastructure as Code (IaC), ensuring consistent provisioning of cloud components.
+In today’s fast-paced development environment, Continuous Integration and Continuous Deployment (CI/CD) are essential for delivering software quickly and reliably. By automating build, test, and deployment processes, teams can improve code quality, enhance collaboration, and accelerate release cycles.
+
+This guide walks through building a real-time CI/CD pipeline for a Java application and deploying it onto an Apache server. We use Jenkins, Maven, and Git to automate the workflow, ensuring that code is compiled, tested, packaged, and deployed with minimal manual effort.
+
+To manage infrastructure efficiently, we use Terraform as Infrastructure as Code (IaC), enabling consistent, version-controlled provisioning of cloud resources. Our environment runs on AWS, leveraging services like EC2 (for Jenkins, Apache/Tomcat, SonarQube), S3 (for artifact storage), and EKS (for container orchestration).
+
+By combining CI/CD automation with Terraform and AWS, we create a scalable, repeatable, and production-ready deployment pipeline for Java applications—ensuring faster and more reliable software delivery.
 
 4. Technologies Used
 
