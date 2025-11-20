@@ -58,92 +58,83 @@ Technologies Used
 
 5. Prerequisites
 
-AWS account with IAM permissions
+## Prerequisites
+- AWS Account with billing enabled
+- MobaXterm or any SSH client
+- Basic knowledge of AWS, Linux, Jenkins, Docker
 
-Terraform installed
+## PORT-IP'S
+- JENKINS - 8080
+- SONARQUBE - 9000
+- TOMCAT - 8080
+---
 
-Jenkins server
 
-SonarQube server
 
-Docker installed on build node
+### Step 1: Launch EC2 Instance (Jenkins + Tools Server)
 
-GitHub repository
+1. Go to AWS Console → EC2 → Launch Instance
+2. Name: `jenkins-terraform' (or any)
+3. OS: **Amazon Linux 2023 AMI kernel-6.1**
+4. Instance Type: **m7i-flex.large** (or t3.large if budget constrained)
+5. Key pair: Create or use existing
+6. Security Group: Allow **All Traffic** (0.0.0.0/0) → only for learning/lab
+7. Storage: 28 GB gp3 EBS volume
+8. IAM Role: Create new role with **AdministratorAccess** (for learning only)
+9. Launch instance
+10. Connect via MobaXterm as `ec2-user`, then switch to root:
+     ```bash
+    sudo su -
+    ```
+ 11. Launch another with c7i-flex.large for TOMCAT everything same expect IAM configuration   
 
-6. Project Workflow Summary
+### Step 2: JENKINS SERVER → Provision EKS Cluster using Terraform
 
-Developer pushes code to GitHub.
+1. Install Terraform:
+   ```bash
+   sudo yum install -y yum-utils shadow-utils
+   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+   sudo yum install terraform
+   ```
 
-Jenkins triggers CI pipeline.
 
-Code undergoes quality and security checks.
 
-Maven builds the artifact.
 
-Docker image is built and scanned.
+3. Create S3 bucket in AWS Console for Terraform state (e.g., `my-terraform-state-bucket-unique-name`) → note region
 
-Image is pushed to Docker Hub.
+4. Edit `backend.tf`:
+   ```hcl
+   terraform {
+     backend "s3" {
+       bucket         = "your-unique-bucket-name"
+       key            = "eks/terraform.tfstate"
+       region         = "us-east-1"  # change if needed
+       dynamodb_table = "terraform-lock"  # optional
+       use_lockfile   = true
+     }
+   }
+   ```
 
-Application is deployed to AWS.
+5. Edit `main.tf`:
+   - Line ~89: Desired/Min/Max capacity → `desired_size = 2`, `min_size = 2`, `max_size = 4`
+   - Line ~93: Change instance type to `c7i-flex.large` 
 
-Terraform provisions and manages cloud resources.
+6. Run Terraform:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply --auto-approve
+   ```
+   Wait 15–20 mins for EKS cluster to be ready.
 
-7. Infrastructure Provisioning with Terraform
+7. Verify:
+   ```bash
+   terraform state list
+   aws eks update-kubeconfig --name <cluster-name> --region us-east-1
+   kubectl get nodes
+   ```
 
-Terraform is used to provision AWS resources like:
-
-EC2 instances
-
-S3 bucket for artifact storage
-
-Security groups
-
-IAM roles
-
-(Optional) EKS cluster
-
-Terraform ensures:
-
-Declarative configuration
-
-Consistent environment setup
-
-Reproducible deployments
-
-8. AWS Services Utilized
-EC2 – Hosts Jenkins, SonarQube, or application servers
-S3 – Stores Maven build artifacts
-IAM – Fine-grained access control
-ECR/Docker Hub – Stores Docker images
-EKS (Optional) – Kubernetes deployments
-
-AWS provides scalability, reliability, and secure hosting for the entire CI/CD process.
-
-9. Setting Up the EC2 Instances
-
-Install Java, Maven, Jenkins, Git, and Docker.
-
-Configure security groups.
-
-Assign IAM roles with required permissions.
-
-10. Installing and Configuring Jenkins
-
-Install Jenkins on EC2
-
-Install required plugins:
-
-Git
-
-Maven Integration
-
-SonarQube Scanner
-
-OWASP Dependency-Check
-
-Docker Pipeline
-
-Configure Global Tool settings
+---
 
 11. Configuring Jenkins Plugins
 
