@@ -18,16 +18,41 @@ To manage infrastructure efficiently, we use Terraform as Infrastructure as Code
 By combining CI/CD automation with Terraform and AWS, we create a scalable, repeatable, and production-ready deployment pipeline for Java applications—ensuring faster and more reliable software delivery.
 
 4. Technologies Used
+Technologies Used
 
-1.	Maven – Application development and build management
-2.	Jenkins – CI/CD automation
-3.	GitHub – Source code repository
-4.	SonarQube – Code quality and static analysis
-5.	OWASP Dependency Check – Vulnerability scanning
-6.	Docker – Image creation and packaging
-7.	Trivy – Container security scanning
-8.	Terraform – Infrastructure as Code
-9.	AWS (EC2, S3, IAM, VPC) – Cloud infrastructure hosting
+Technologies Used
+1.	Maven – Application development and build management tool. Compiles code, runs tests, manages dependencies, and packages the Java application into a .war file.
+
+   
+2.	Jenkins – CI/CD orchestration engine running on AWS EC2. Automatically triggers on GitHub push, executes the full pipeline, and provides complete visibility and control.
+
+	
+3.	GitHub – Source code repository and version control system. Hosts the application code, Jenkinsfile, Dockerfile, and Terraform scripts while instantly triggering Jenkins via webhook.
+
+	
+4.	SonarQube (via Docker) – Static code analysis platform. Detects bugs, code smells, security vulnerabilities, duplication, and enforces quality gates before deployment.
+
+	
+5.	OWASP Dependency-Check – Dependency vulnerability scanner. Checks all libraries in pom.xml against known vulnerability databases and fails the build on critical issues.
+
+	
+6.	Docker – Containerization platform. Builds lightweight, consistent images of the application for reproducible environments (optional deployment path).
+
+	
+7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
+
+  
+8.	Terraform – Infrastructure as Code (IaC) tool. Automatically provisions and manages AWS EC2, S3, VPC, IAM roles, and security groups in a fully reproducible way.
+
+	
+9.	AWS Cloud – Cloud infrastructure platform:
+  
+    • EC2 hosts Jenkins, SonarQube container, and Apache Tomcat 9
+
+    • S3 stores versioned build artifacts securely
+  
+    • IAM & VPC provide fine-grained security and network isolation
+
 
 
 
