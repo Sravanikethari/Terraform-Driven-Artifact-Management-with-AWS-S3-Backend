@@ -19,23 +19,17 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
 
 4. Technologies Used
 
-Java, Maven – Application development and build management
+1.	Maven – Application development and build management
+2.	Jenkins – CI/CD automation
+3.	GitHub – Source code repository
+4.	SonarQube – Code quality and static analysis
+5.	OWASP Dependency Check – Vulnerability scanning
+6.	Docker – Image creation and packaging
+7.	Trivy – Container security scanning
+8.	Terraform – Infrastructure as Code
+9.	AWS (EC2, S3, IAM, VPC) – Cloud infrastructure hosting
 
-Jenkins – CI/CD automation
 
-GitHub – Source code repository
-
-SonarQube – Code quality and static analysis
-
-OWASP Dependency Check – Vulnerability scanning
-
-Docker – Image creation and packaging
-
-Trivy – Container security scanning
-
-Terraform – Infrastructure as Code
-
-AWS (EC2, S3, IAM, VPC, EKS) – Cloud infrastructure hosting
 
 5. Prerequisites
 
