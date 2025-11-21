@@ -262,7 +262,31 @@ Maintain least-privilege access
 
 This project demonstrates a complete CI/CD automation system for Java applications using industry-standard tools and best practices in cloud-native DevOps.
 
-26. Future Enhancements
+
+26. IMAGES/OUTPUTS
+
+Full Deploy:
+
+<img width="1900" height="802" alt="Full-deploy" src="https://github.com/user-attachments/assets/335bcd0b-0e74-4618-855a-edac2c808237" />
+
+Sonarqube-login-page:
+
+<img width="1900" height="871" alt="sonarqube-login" src="https://github.com/user-attachments/assets/9186537d-65a6-4ce1-8830-06caaf971b03" />
+
+Tomcat: 
+
+<img width="1902" height="874" alt="tomcat-home" src="https://github.com/user-attachments/assets/0aefd132-12f8-423d-acbf-3de506b40f2b" />
+
+Dockerhub:
+
+<img width="1904" height="876" alt="dockerhub-images" src="https://github.com/user-attachments/assets/25ae967c-3ea9-4ac0-a24a-b77dc4da7ebe" />
+
+Output:
+
+<img width="1920" height="872" alt="live-page" src="https://github.com/user-attachments/assets/b0a33276-6fb4-4058-a8a9-ffeb8e59a328" />
+
+
+27. Future Enhancements
 
 Integrate ArgoCD for GitOps
 
@@ -270,6 +294,6 @@ Add monitoring (Prometheus & Grafana)
 
 Configure Blue/Green deployments
 
-27. Author / Maintainer
+28. Author / Maintainer
 
 fly – Project Owner
