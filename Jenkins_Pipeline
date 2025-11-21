@@ -1,0 +1,113 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'mymaven'           // Name configured in Global Tool Configuration
+    }
+
+    environment {
+        DOCKERHUB_CRED   = credentials('dockerhub')          // ID of DockerHub credentials in Jenkins
+        IMAGE_APP        = 'sravanik93/terraformproject'
+        IMAGE_DB         = 'sravanik93/terraformproject'
+        TAG              = 'app'
+        TAG_DB           = 'db'
+        SONAR_PROJECTKEY = 'dockerwebapp'
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', 
+                    url: 'https://github.com/devops0014/dockerwebapp.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('mysonar') {
+                    sh "mvn clean verify sonar:sonar -Dsonar.projectKey=${SONAR_PROJECTKEY}"
+                }
+            }
+        }
+
+        stage('Maven Build & Copy Artifacts') {
+            steps {
+                sh 'mvn clean package'
+                sh 'cp -r target Docker-app'
+                sh 'cp -r Docker-db Docker-app/'   // if you need DB files too
+            }
+        }
+
+        stage('OWASP Dependency-Check') {
+            steps {
+                dependencyCheck odcInstallation: 'my-dp',
+                                 additionalArguments: '--format HTML'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+
+        stage('Upload Artifact to S3') {
+            steps {
+                s3Upload(
+                    bucket: 'amazn-s3-bucket-ksn',
+                    file: 'target/vprofile-v2.war',
+                    path: 'artifacts/vprofile-v2-${BUILD_NUMBER}.war',
+                    profileName: 'amazn-s3-bucket-ksn'
+                )
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t ${IMAGE_APP}:${TAG} ./Docker-app'
+                sh 'docker build -t ${IMAGE_DB}:${TAG_DB} ./Docker-db'
+            }
+        }
+
+        stage('Trivy Vulnerability Scan') {
+            steps {
+                sh 'trivy image --severity HIGH,CRITICAL ${IMAGE_APP}:${TAG}'
+                sh 'trivy image --severity HIGH,CRITICAL ${IMAGE_DB}:${TAG_DB}'
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withDockerRegistry([credentialsId: 'dockerhub', url: '']) {
+                    sh '''
+                        docker push ${IMAGE_APP}:${TAG}
+                        docker push ${IMAGE_DB}:${TAG_DB}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                deploy adapters: [tomcat9(
+                    credentialsId: 'tomcat',
+                    path: '',
+                    url: 'http://44.192.31.210:8080'
+                )], contextPath: 'myapp', war: 'target/vprofile-v2.war'
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
