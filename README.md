@@ -3,11 +3,8 @@ Project Overview
 
 This project demonstrates a complete end-to-end CI/CD pipeline for a Java-based application using Jenkins, Maven, SonarQube, Docker, Trivy, Terraform, and AWS services. The pipeline automates code quality checks, dependency scanning, application packaging, containerization, security scanning, and deployment.
 
-2. Architecture Diagram
 
-(Insert your architecture diagram here)
-
-3. Introduction
+## Introduction
 
 In today’s fast-paced development environment, Continuous Integration and Continuous Deployment (CI/CD) are essential for delivering software quickly and reliably. By automating build, test, and deployment processes, teams can improve code quality, enhance collaboration, and accelerate release cycles.
 
@@ -17,35 +14,34 @@ To manage infrastructure efficiently, we use Terraform as Infrastructure as Code
 
 By combining CI/CD automation with Terraform and AWS, we create a scalable, repeatable, and production-ready deployment pipeline for Java applications—ensuring faster and more reliable software delivery.
 
-4. Technologies Used
-Technologies Used
 
-Technologies Used
-1.	Maven – Application development and build management tool. Compiles code, runs tests, manages dependencies, and packages the Java application into a .war file.
+## Technologies Used
+
+    1.	Maven – Application development and build management tool. Compiles code, runs tests, manages dependencies, and packages the Java application into a .war file.
 
    
-2.	Jenkins – CI/CD orchestration engine running on AWS EC2. Automatically triggers on GitHub push, executes the full pipeline, and provides complete visibility and control.
+    2.	Jenkins – CI/CD orchestration engine running on AWS EC2. Automatically triggers on GitHub push, executes the full pipeline, and provides complete visibility and control.
 
 	
-3.	GitHub – Source code repository and version control system. Hosts the application code, Jenkinsfile, Dockerfile, and Terraform scripts while instantly triggering Jenkins via webhook.
+    3.	GitHub – Source code repository and version control system. Hosts the application code, Jenkinsfile, Dockerfile, and Terraform scripts while instantly triggering Jenkins via webhook.
 
 	
-4.	SonarQube (via Docker) – Static code analysis platform. Detects bugs, code smells, security vulnerabilities, duplication, and enforces quality gates before deployment.
+    4.	SonarQube (via Docker) – Static code analysis platform. Detects bugs, code smells, security vulnerabilities, duplication, and enforces quality gates before deployment.
 
 	
-5.	OWASP Dependency-Check – Dependency vulnerability scanner. Checks all libraries in pom.xml against known vulnerability databases and fails the build on critical issues.
+    5.	OWASP Dependency-Check – Dependency vulnerability scanner. Checks all libraries in pom.xml against known vulnerability databases and fails the build on critical issues.
 
 	
-6.	Docker – Containerization platform. Builds lightweight, consistent images of the application for reproducible environments (optional deployment path).
+    6.	Docker – Containerization platform. Builds lightweight, consistent images of the application for reproducible environments (optional deployment path).
 
 	
-7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
+    7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
 
   
-8.	Terraform – Infrastructure as Code (IaC) tool. Automatically provisions and manages AWS EC2, S3, VPC, IAM roles, and security groups in a fully reproducible way.
+    8.	Terraform – Infrastructure as Code (IaC) tool. Automatically provisions and manages AWS EC2, S3, VPC, IAM roles, and security groups in a fully reproducible way.
 
 	
-9.	AWS Cloud – Cloud infrastructure platform:
+   9.	AWS Cloud – Cloud infrastructure platform:
   
     • EC2 hosts Jenkins, SonarQube container, and Apache Tomcat 9
 
@@ -54,28 +50,32 @@ Technologies Used
     • IAM & VPC provide fine-grained security and network isolation
 
 
-
-
-5. Prerequisites
-
 ## Prerequisites
+
+
 - AWS Account with billing enabled
+  
 - MobaXterm or any SSH client
+  
 - Basic knowledge of AWS, Linux, Jenkins, Docker
 
-## PORT-IP'S
-- JENKINS - 8080
-- SONARQUBE - 9000
-- TOMCAT - 8080
----
 
+## PORT-IP'S
+
+
+- JENKINS - 8080
+ 
+- SONARQUBE - 9000
+
+- TOMCAT - 8080
 
 
 ### Step 1: Launch EC2 Instance (Jenkins + Tools Server)
 
+
 1. Go to AWS Console → EC2 → Launch Instance
-2. Name: `jenkins-terraform' (or any)
-3. OS: **Amazon Linux 2023 AMI kernel-6.1**
+2. Name: `jenkins-server` (or any)
+3. OS: **Amazon Linux 2023 AMI**
 4. Instance Type: **m7i-flex.large** (or t3.large if budget constrained)
 5. Key pair: Create or use existing
 6. Security Group: Allow **All Traffic** (0.0.0.0/0) → only for learning/lab
@@ -88,16 +88,26 @@ Technologies Used
     ```
  11. Launch another with c7i-flex.large for TOMCAT everything same expect IAM configuration   
 
-### Step 2: JENKINS SERVER → Provision EKS Cluster using Terraform
+---
+ 
+   
 
-1. Install Terraform:
+
+
+### Step 2: Set up an EKS cluster on Jenkins with Terraform automation
+
+1. Terraform setup:
    ```bash
    sudo yum install -y yum-utils shadow-utils
    sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
    sudo yum install terraform
    ```
 
-
+2. Clone project repo:
+   ```bash
+   git clone https://github.com/bhargavv62/k8s-project.git
+   cd k8s-project/Eks-terraform
+   ```
 
 
 3. Create S3 bucket in AWS Console for Terraform state (e.g., `my-terraform-state-bucket-unique-name`) → note region
@@ -136,164 +146,347 @@ Technologies Used
 
 ---
 
-11. Configuring Jenkins Plugins
+### Step 3: Launch Jenkins
 
-Add Maven tool
+Open new terminal → SSH into same instance as root
 
-Add JDK
+```bash
+sudo yum update –y
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum upgrade
+sudo yum install java-17-amazon-corretto -y
+sudo yum install jenkins git -y
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+sudo mkdir -p /var/tmp_disk
+sudo chmod 1777 /var/tmp_disk
+sudo mount --bind /var/tmp_disk /tmp
+echo '/var/tmp_disk /tmp none bind 0 0' | sudo tee -a /etc/fstab
+sudo systemctl mask tmp.mount
+df -h /tmp
+sudo systemctl restart jenkins
+```
 
-Add SonarQube server details
+Access Jenkins: `http://<public-ip>:8080`  
+Get initial admin password:
+```bash
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
 
-Set Docker Hub credentials
+Install **Suggested Plugins** → Create admin user (remember username/password)
 
-12. GitHub Source Code Integration
+---
 
-Create GitHub repo
+### Step 4: Install Docker on Jenkins Server
 
-Add Jenkins webhook
+```bash
+# Docker
+yum install docker -y && systemctl start docker
+chmod 777 /var/run/docker.sock   # only for lab
 
-Configure Jenkins Pipeline to pull code
+# Lauching SonarQube through docker
+docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+```
 
-13. SonarQube Code Quality Analysis
+Access SonarQube: `http://<public-ip>:9000`  
+Login: `admin` / `admin` → Change password →  
+My Account → Security → Generate Token → Name: `mytoken` → Copy token
 
-Configure SonarQube in Jenkins
+---
 
-Add sonar-project.properties
+### Step 5: Configure Jenkins Plugins
 
-Perform static code analysis during pipeline
+Manage Jenkins → Plugins → Available → Select below listed → Install and restart jenkins:
+- Pipeline: Stage View
+- SonarQube Scanner for Jenkins
+- OWASP Dependency-Check
+- Kubernetes
+- Kubernetes CLI
+- Docker Pipeline
+- Deploy to container
 
-14. Implementing OWASP Dependency Check
+---
+- Restart jenkins
 
-Identify vulnerable dependencies
+  
+## Step 6: Configure Global Tools in Jenkins
 
-Generate HTML or XML reports
+Manage Jenkins → Tools →
 
-Fail build on high-severity issues (optional)
+1. **SonarQube Scanner** 
+   - Name: `mysonar`
+   - Install automatically
 
-15. Maven Build and Artifact Generation
+2. **Maven**
+   - Name: `mymaven`
+   - Install automatically (latest)
 
-Run mvn clean install
+3. **Dependency-Check**
+   - Name: `DP-Check`
+   - Install automatically from GitHub
 
-Package application as .jar or .war
+---
 
-Upload artifacts to AWS S3
+## Step 7: Configure SonarQube in Jenkins
 
-16. Artifact Storage in Amazon S3
+Manage Jenkins → System → SonarQube servers
+- Name: `mysonar`
+- Server URL: `http://<public-ip>:9000`
+- Server authentication token → Add → Secret Text → Paste token from SonarQube → ID: `sonar-token`
 
-Store versioned build artifacts
+---
+Manage Jenkins → System → Amazon s3 profiles → Profile name: mybucket
 
-Secure using IAM policies
+### Step 8: Create Jenkins Pipeline Job
 
-Retrieve during deployment stage
+Jenkins-Full-Pipeline  →  https://github.com/bhargavv62/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App/blob/fb07b5ce490e827f500a4ec318dcb20da0f7aa9a/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App.txt
 
-16.1 Terraform-Driven Artifact Management with AWS S3 Backend
+New Item → Name: `mydeployment` → Pipeline → OK
 
-Tools: AWS S3, IAM, Terraform, Jenkins, Shell Scripting
+#### Pipeline Stages (Add one by one)
 
-Automated provisioning of versioned S3 buckets and fine‑grained IAM policies via Terraform, integrating artifact storage securely within Jenkins pipelines.
+**Stage 1: Clean Workspace**
+```groovy
+cleanWs()
+```
 
-Eliminated manual uploads entirely and improved artifact retrieval speeds by over 50%, while implementing lifecycle and versioning policies for cost control.
+**Stage 2: Checkout Code**
+```groovy
+git 'https://github.com/bhargavv62/dockerwebapp.git'
+```
 
-17. Docker Image Build & Trivy Security Scan
+**Stage 3: SonarQube Analysis**
 
-Build Docker image using Dockerfile
+Use Pipeline Syntax → Snippet Generator → `withSonarQubeEnv` → Select `mysonar` → select → add → jenkins → add credentials → select → Generate:
 
-Scan image with Trivy
+```groovy
+          steps{
+                withSonarQubeEnv('mysonar'){
+                    sh "mvn clean verify sonar:sonar -Dsonar.projectKey=MyProject"
+          }
+```
 
-Fail pipeline on critical vulnerabilities
+**Stage 4: Quality Gates**
 
-18. Pushing Images to Docker Hub
+Sonarqube server → project settings → webhooks → create → name: jenkins-integration →  url: jenkinsurl/sonarqube-webhook/ →  save  
+Pipeline Syntax → `waitForQualityGate` → select → sonartoken → Generate:
 
-Authenticate using Jenkins credentials
+```groovy
+  script{
+  waitForQualityGate abortPipeline: false, credentialsId: 'sonartoken'
+}
+```
 
-Push versioned image tags
+**Stage 5: Code Build**
 
-19. Deploying Java Application
+```groovy
+sh 'mvn clean package'
+sh 'cp -r target Docker-app'
+```
 
-You can deploy to:
+**Stage 6: OWASP Dependency-Check**
 
-Tomcat/Apache on EC2
+- Get NVD API Key: https://nvd.nist.gov/developers/request-an-api-key → Apply → Get key from email
+- In Jenkins → dependencyCheck → add → jenkins → Add Credentials → Secret Text → Paste API key → ID: `nvd-api-key`
 
-Docker container on EC2
+Pipeline Syntax → dependencyCheck → select →  Additional arguments:
 
-Kubernetes on EKS (optional)
+```
+--scan ./ --disableYarnAudit --disableNodeAudit 
+```
+Then → dependencyCheckPublisher → Xml report pattern: `**/dependency-check-report.xml`
 
-20. EKS Cluster Setup (Optional)
+Generate pipeline →  script should look like this 
 
-Provision EKS using Terraform
+    dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', nvdCredentialsId: 'nvd', odcInstallation: 'DP-check'
+      dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
 
-Deploy application using Kubernetes manifests
+**Stage 7: Upload Artifact to S3**
 
-21. Jenkins Pipeline (CI/CD)
+AWS console
+- Create IAM User with AmazonS3FullAccess
+- Create access key → Copy Access Key & Secret
+- In Jenkins → Manage Jenkins → Amazon S3 Profile → Add → Test & Save
+- AWS console → s3 → create a bucket → copy bucket name remember region name
 
-Add your full Jenkinsfile here.
+Pipeline Syntax → S3 Upload:
 
-22. Testing and Verification
+- File: `target/vprofile-v2.war` To check war file → cd /var/lib/jenkins/workspace/mydeployment →  ll target
+- Bucket: `your-artifact-bucket-name`
+- Region: match your bucket region
+- opt for no upload on build failure
 
-Verify Jenkins stages
+      s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'bhargavvb', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'ap-northeast-1', showDirectlyInBrowser: false, sourceFile: 'target/vprofile-v2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'mybucket', userMetadata: []
 
-Check SonarQube reports
+**Stage 8: Build Docker Images**
 
-Validate S3 uploads
+```groovy
+sh 'docker build -t appimage Docker-app'
+sh 'docker build -t dbimage Docker-db'
+```
 
-Test application deployment
+**Stage 9: Trivy Image Scan**
+
+First install Trivy on Jenkins server:
+```bash
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.67.2
+```
+
+In pipeline:
+
+```groovy
+sh 'trivy image appimage'
+sh 'trivy image dbimage'
+```
+
+**Stage 10: Tag&push**
+
+Push to Docker Hub
+
+Add Docker Hub credentials in Jenkins → Pipeline syntax → with docker Registry → Registry credentials → add →  jenkins → Username: Dockerhub username, Password: Dockerhub password → (ID: `dockerhub`) → select → dockerhub
+
+```groovy
+docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+  sh 'docker tag appimage yourusername/vprofile-app:latest'
+  sh 'docker tag dbimage yourusername/vprofile-db:latest'
+  sh 'docker push yourusername/vprofile-app:latest'
+  sh 'docker push yourusername/vprofile-db:latest'
+}
+```
+It should look like this
+
+      script{
+                withDockerRegistry(credentialsId: 'dockerhub') {
+                    sh 'docker tag appimage bhargav62/socialmedia:app'
+                    sh 'docker tag dbimage bhargav62/socialmedia:db'
+                    sh 'docker push bhargav62/socialmedia:app'
+                    sh 'docker push bhargav62/socialmedia:db'
+
+
+**Stage 11: Deploy to Tomcat**
+
+Installing in TOMCAT SERVER → connect →
+
+  1. Tomcat EC2 → connect 
+  2. Install Tomcat:
+    
+   ```bash
+   # 1. Install Java 17 (Amazon Corretto)
+yum install -y java-17-amazon-corretto-devel
 
-23. Troubleshooting Guide
+# 2. Download latest Tomcat 9
+wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.112/bin/apache-tomcat-9.0.112.tar.gz
 
-Jenkins agent connectivity issues
+# 3. Extract
+tar -xzf apache-tomcat-9.0.112.tar.gz
 
-Docker permission errors
+# 4. Move to /opt (standard location)
+mv apache-tomcat-9.0.112 /opt/tomcat
 
-AWS credential issues
+# 5. Create tomcat user
+groupadd -r tomcat
+useradd -r -g tomcat -s /bin/false -d /opt/tomcat tomcat
+chown -R tomcat:tomcat /opt/tomcat
 
-SonarQube scanner configuration errors
+# 6. Fix tomcat-users.xml (add user OUTSIDE comments)
+cat > /opt/tomcat/conf/tomcat-users.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<tomcat-users xmlns="http://tomcat.apache.org/xml"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+              version="1.0">
+  <role rolename="manager-gui"/>
+  <role rolename="manager-script"/>
+  <user username="tomcat" password="admin@123" roles="manager-gui,manager-script"/>
+</tomcat-users>
+EOF
 
-24. Best Practices and Security Considerations
+# 7. Allow remote access to Manager (comment out IP restriction)
+sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/<!-- & -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
+sed -i 's/<\/Valve>/<\/Valve> -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
 
-Use IAM roles instead of access keys
+# 8. Create systemd service
+cat > /etc/systemd/system/tomcat.service << 'EOF'
+[Unit]
+Description=Apache Tomcat 9
+After=network.target
 
-Enable S3 bucket versioning
+[Service]
+Type=forking
+User=tomcat
+Group=tomcat
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_BASE=/opt/tomcat"
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+Restart=on-failure
+RestartSec=10
 
-Use Trivy to detect security flaws
+[Install]
+WantedBy=multi-user.target
+EOF
 
-Maintain least-privilege access
+# 9. Enable and start Tomcat
+systemctl daemon-reload
+systemctl enable tomcat
+systemctl start tomcat
 
-25. Conclusion
+# 10. Open firewall
+firewall-cmd --add-port=8080/tcp --permanent
+firewall-cmd --reload
 
-This project demonstrates a complete CI/CD automation system for Java applications using industry-standard tools and best practices in cloud-native DevOps.
+# 11. Done!
+echo "Tomcat installed! Access:"
+echo "   Web: http://$(curl -s ifconfig.me):8080"
+echo "   Manager: http://$(curl -s ifconfig.me):8080/manager/html"
+echo "   User: tomcat | Pass: admin@123"
+   ```
+3. Wait 10 seconds → open in browser:
+   
+•	Tomcat Home: http://YOUR_IP:8080
+•	Manager GUI: http://YOUR_IP:8080/manager/html → Login: tomcat / admin@123
 
 
-26. IMAGES/OUTPUTS
+Check status tomcat
 
-Full Deploy:
+   ```xml
+   # Check status
+   systemctl status tomcat
 
-<img width="1900" height="802" alt="Full-deploy" src="https://github.com/user-attachments/assets/335bcd0b-0e74-4618-855a-edac2c808237" />
+   # Check logs
+   journalctl -u tomcat -f
+   ```
+4. Restart Tomcat: `systemctl restart tomcat`
 
-Sonarqube-login-page:
+5.   Pipeline Syntax → deploy: Deploy war/ear to container
+   - WAR: `target/vprofile-v2.war`
+   - Context path: `vprofile`
+   - Tomcat URL: `http://<tomcat-ip>:8080`
+   - Credentials: Credentials → Add → Username/Password → `tomcat` / `admin@123` → ID: `tomcat-creds``tomcat-creds`
 
-<img width="1900" height="871" alt="sonarqube-login" src="https://github.com/user-attachments/assets/9186537d-65a6-4ce1-8830-06caaf971b03" />
+Add generated step to pipeline  → it should look like this
 
-Tomcat: 
+    deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'tomcat', path: '', url: 'http://<tomcat-ip>:8080')], contextPath: 'myapp', war: 'target/vprofile-v2.war'
 
-<img width="1902" height="874" alt="tomcat-home" src="https://github.com/user-attachments/assets/0aefd132-12f8-423d-acbf-3de506b40f2b" />
+---
 
-Dockerhub:
+### Final Pipeline Success!
 
-<img width="1904" height="876" alt="dockerhub-images" src="https://github.com/user-attachments/assets/25ae967c-3ea9-4ac0-a24a-b77dc4da7ebe" />
+After building the pipeline:
+- Application successfully deployed
+- Accessible at: `http://<tomcat-public-ip>:8080/vprofile`
 
-Output:
+---
 
-<img width="1920" height="872" alt="live-page" src="https://github.com/user-attachments/assets/b0a33276-6fb4-4058-a8a9-ffeb8e59a328" />
+## Project Repository Links
+- EKS Terraform: https://github.com/bhargavv62/k8s-project.git
+- Application Code: https://github.com/bhargavv62/dockerwebapp.git
 
+---
 
-27. Future Enhancements
+**Note**: Thi
 
-Integrate ArgoCD for GitOps
 
-Add monitoring (Prometheus & Grafana)
-
-Configure Blue/Green deployments
-
-28. Author / Maintainer
-
-fly – Project Owner
