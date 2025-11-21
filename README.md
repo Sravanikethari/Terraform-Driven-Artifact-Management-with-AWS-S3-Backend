@@ -1,8 +1,7 @@
 # Terraform-Driven-Artifact-Management-with-AWS-S3-Backend
-Project Overview
+## Project Overview
 
-This project demonstrates a complete end-to-end CI/CD pipeline for a Java-based application using Jenkins, Maven, SonarQube, Docker, Trivy, Terraform, and AWS services. The pipeline automates code quality checks, dependency scanning, application packaging, containerization, security scanning, and deployment.
-
+The project illustrates an end-to-end CI/CD process for a Java-based application using tools like Jenkins, Maven, SonarQube, Docker, Trivy, and Terraform, integrated with AWS for automated testing, building, scanning, and deployment
 
 ## Introduction
 
