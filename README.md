@@ -242,7 +242,7 @@ Manage Jenkins → System → Amazon s3 profiles → Profile name: mybucket
 
 Jenkins-Full-Pipeline  →  https://github.com/bhargavv62/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App/blob/fb07b5ce490e827f500a4ec318dcb20da0f7aa9a/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App.txt
 
-New Item → Name: `mydeployment` → Pipeline → OK
+New Item → Name: `tfproject` → Pipeline → OK
 
 #### Pipeline Stages (Add one by one)
 
@@ -253,7 +253,7 @@ cleanWs()
 
 **Stage 2: Checkout Code**
 ```groovy
-git 'https://github.com/bhargavv62/dockerwebapp.git'
+git 'https://github.com/Sravanikethari/dockerwebapp.git'
 ```
 
 **Stage 3: SonarQube Analysis**
@@ -312,12 +312,12 @@ AWS console
 
 Pipeline Syntax → S3 Upload:
 
-- File: `target/vprofile-v2.war` To check war file → cd /var/lib/jenkins/workspace/mydeployment →  ll target
+- File: `target/vprofile-v2.war` To check war file → cd /var/lib/jenkins/workspace/tfproject →  ll target
 - Bucket: `your-artifact-bucket-name`
 - Region: match your bucket region
 - opt for no upload on build failure
 
-      s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'bhargavvb', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'ap-northeast-1', showDirectlyInBrowser: false, sourceFile: 'target/vprofile-v2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'mybucket', userMetadata: []
+      s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'amazn-s3-bucket-ksn', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'ap-northeast-1', showDirectlyInBrowser: false, sourceFile: 'target/vprofile-v2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'mybucket', userMetadata: []
 
 **Stage 8: Build Docker Images**
 
@@ -358,10 +358,10 @@ It should look like this
 
       script{
                 withDockerRegistry(credentialsId: 'dockerhub') {
-                    sh 'docker tag appimage bhargav62/socialmedia:app'
-                    sh 'docker tag dbimage bhargav62/socialmedia:db'
-                    sh 'docker push bhargav62/socialmedia:app'
-                    sh 'docker push bhargav62/socialmedia:db'
+                    sh 'docker tag appimage sravani93/terraformproject:app'
+                    sh 'docker tag dbimage sravani93/terraformproject:db'
+                    sh 'docker push sravani93/terraformproject:app'
+                    sh 'docker push sravani93/terraformproject:db'
 
 
 **Stage 11: Deploy to Tomcat**
@@ -480,12 +480,23 @@ After building the pipeline:
 
 ---
 
-## Project Repository Links
-- EKS Terraform: https://github.com/bhargavv62/k8s-project.git
-- Application Code: https://github.com/bhargavv62/dockerwebapp.git
+# 👨‍💻 Author & Support🛠️
+This project is maintained by Sravani💡. Your feedback and contributions are welcome!
 
----
+# 📧 Connect with me:
 
-**Note**: Thi
+GitHub: https://github.com/Sravanikethari
+
+LinkedIn: https://linkedin.com/in/sravani-k-082838350
+
+# ⭐ Support the Project
+If you found this project helpful, please consider:
+
+
+•	Starring ⭐ the repository
+
+•	Sharing it with your network
+
+•	Contributing to its improvement
 
 
