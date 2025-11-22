@@ -498,6 +498,10 @@ After building the pipeline:
 
 <img width="1920" height="872" alt="live-page" src="https://github.com/user-attachments/assets/9477eb9b-ddf2-4470-9c7e-39c48ab9e9a5" />
 
+
+Conclusion
+This project successfully demonstrates a production-ready, secure, and fully automated approach to artifact management by combining Infrastructure as Code (Terraform) with centralized AWS S3 storage. By eliminating manual uploads, enforcing least-privilege IAM policies, enabling versioning, and implementing lifecycle rules, the solution ensures consistency, auditability, cost-efficiency, and zero-downtime integration into existing Jenkins CI/CD pipelines.
+
  
 ---
 
