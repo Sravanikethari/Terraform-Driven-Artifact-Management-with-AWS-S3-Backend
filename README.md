@@ -104,7 +104,7 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
 
 2. Clone project repo:
    ```bash
-   git clone https://github.com/bhargavv62/k8s-project.git
+   git clone https://github.com/Sravanikethari/dockerwebapp.git
    cd k8s-project/Eks-terraform
    ```
 
