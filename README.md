@@ -191,6 +191,10 @@ docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
 
 Access SonarQube: `http://<public-ip>:9000`  
 Login: `admin` / `admin` → Change password →  
+
+<img width="1900" height="871" alt="sonarqube-login" src="https://github.com/user-attachments/assets/0c36fb28-be4d-4a20-b71a-eba8810e2645" />
+
+
 My Account → Security → Generate Token → Name: `mytoken` → Copy token
 
 ---
@@ -363,6 +367,11 @@ It should look like this
                     sh 'docker push sravani93/terraformproject:app'
                     sh 'docker push sravani93/terraformproject:db'
 
+Checking DockerHub Registry images uploaded in the directed repo
+
+<img width="1904" height="876" alt="dockerhub-images" src="https://github.com/user-attachments/assets/7a984944-334f-4ab1-a4df-c97c0627cb0d" />
+
+
 
 **Stage 11: Deploy to Tomcat**
 
@@ -460,11 +469,16 @@ Check status tomcat
    ```
 4. Restart Tomcat: `systemctl restart tomcat`
 
+
 5.   Pipeline Syntax → deploy: Deploy war/ear to container
    - WAR: `target/vprofile-v2.war`
    - Context path: `vprofile`
    - Tomcat URL: `http://<tomcat-ip>:8080`
    - Credentials: Credentials → Add → Username/Password → `tomcat` / `admin@123` → ID: `tomcat-creds``tomcat-creds`
+
+<img width="1902" height="874" alt="tomcat-home" src="https://github.com/user-attachments/assets/16d988dd-857e-4842-a1ee-aac66a4b82e2" />
+
+
 
 Add generated step to pipeline  → it should look like this
 
@@ -474,10 +488,17 @@ Add generated step to pipeline  → it should look like this
 
 ### Final Pipeline Success!
 
+<img width="1900" height="802" alt="Full-deploy" src="https://github.com/user-attachments/assets/4d5846b0-ba14-4c0f-8a2b-c559069ef3b7" />
+
+
+
 After building the pipeline:
 - Application successfully deployed
 - Accessible at: `http://<tomcat-public-ip>:8080/vprofile`
 
+<img width="1920" height="872" alt="live-page" src="https://github.com/user-attachments/assets/9477eb9b-ddf2-4470-9c7e-39c48ab9e9a5" />
+
+ 
 ---
 
 # 👨‍💻 Author & Support🛠️
