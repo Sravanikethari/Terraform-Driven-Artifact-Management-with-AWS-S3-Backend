@@ -244,7 +244,7 @@ Manage Jenkins → System → Amazon s3 profiles → Profile name: mybucket
 
 ### Step 8: Create Jenkins Pipeline Job
 
-Jenkins-Full-Pipeline  →  https://github.com/bhargavv62/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App/blob/fb07b5ce490e827f500a4ec318dcb20da0f7aa9a/AWS-Based-CI-CD-Pipeline-with-Terraform-for-Java-Web-App.txt
+Jenkins-Full-Pipeline  →  - <a href="https://github.com/Sravanikethari/Terraform-Driven-Artifact-Management-with-AWS-S3-Backend/blob/main/Jenkins_Pipeline">jenkins_pipeline</a>
 
 New Item → Name: `tfproject` → Pipeline → OK
 
