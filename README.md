@@ -147,30 +147,36 @@ Kubernetes is set up using kOps, with cluster state stored in the S3 backend con
 Install Kubernetes tools:
 
 # Install kubectl
-curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
+    curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
 
 # Install kOps
-curl -Lo kops https://github.com/kubernetes/kops/releases/latest/download/kops-linux-amd64
-chmod +x kops
-sudo mv kops /usr/local/bin/
+    curl -Lo kops https://github.com/kubernetes/kops/releases/latest/download/kops-linux-amd64
+    chmod +x kops
+    sudo mv kops /usr/local/bin/
 
 
 Create the Kubernetes cluster:
 
     kops create cluster --name ksn.k8s.local --zones=us-east-1a,us-east-1b --master-count=1 --master-size=c7i-flex.large --master-volume-size=30 --node-count=2 --node-size=t3.micro --node-volume-size=18 --image=ami-068c0051b15cdb816 
 
+<img width="1920" height="995" alt="cluster creation" src="https://github.com/user-attachments/assets/861831e3-347b-46a6-84da-b1eaee32ef93" />
+
+
 
 Apply the cluster configuration:
 
-kops update cluster ksn.k8s.local --yes
+    kops update cluster ksn.k8s.local --yes
+
+
+kOps, the cluster is provisioned and becomes fully operational in approximately 5 minutes, enabling rapid environment setup.
+
 
 
 Verify cluster:
 
 kubectl get nodes
-kubectl get pods -A
 
 ---
 
