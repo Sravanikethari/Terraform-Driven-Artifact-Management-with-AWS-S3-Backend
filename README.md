@@ -36,12 +36,13 @@ This project showcases a cloud-native CI/CD pipeline for a Java application usin
 	
     6.	Docker – Containerization platform. Builds lightweight, consistent images of the application for reproducible environments (optional deployment path).
 
-	
     7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
 
     8.  Kubernetes (kOps / EKS) – Container orchestration platform. Manages containerized application deployment, scaling, self-healing, and service exposure using Deployments and Services, enabling high availability and production-ready workloads.
    
-    9. Terraform – Infrastructure as Code (IaC) tool. Provisions and manages AWS infrastructure including VPC, IAM roles, security groups, S3 remote backend, and Kubernetes-supporting resources in a fully automated and reproducible manner.
+    9. Argo CD – GitOps continuous delivery tool. Automatically synchronizes Kubernetes manifests from Git repositories to the cluster, ensuring the desired application state and eliminating manual deployments.
+
+    10. Terraform – Infrastructure as Code (IaC) tool. Used to configure and manage AWS S3 remote backend and supporting infrastructure in a reproducible and version-controlled manner.
     
 	
    ##	AWS Cloud – Cloud infrastructure platform:
@@ -77,7 +78,7 @@ This project showcases a cloud-native CI/CD pipeline for a Java application usin
 
 ## Step 1: Launch EC2 Instances (CI/CD + Kubernetes)
 
-1️⃣ Jenkins & Tools Server
+1️ Jenkins & Tools Server
 
 Go to AWS Console → EC2 → Launch Instance
 
@@ -106,7 +107,6 @@ Instance Type: t3.micro
 Storage: 24 GB EBS volume
 
 Used for Kubernetes cluster setup and containerized application deployment
-
 
 
 ### Step 2: Configure Terraform S3 Backend (State Management)
@@ -159,10 +159,7 @@ Install Kubernetes tools:
 
 Create the Kubernetes cluster:
 
-    kops create cluster --name ksn.k8s.local --zones=us-east-1a,us-east-1b --master-count=1 --master-size=c7i-flex.large --master-volume-size=30 --node-count=2 --node-size=t3.micro --node-volume-size=18 --image=ami-068c0051b15cdb816 
-
-<img width="1920" height="995" alt="cluster creation" src="https://github.com/user-attachments/assets/861831e3-347b-46a6-84da-b1eaee32ef93" />
-
+    kops create cluster --name ksn.k8s.local --zones=us-east-1a,us-east-1b --master-count=1 --master-size=m7i-flex.large --master-volume-size=30 --node-count=2 --node-size=c7i-flex.large --node-volume-size=28 --image=ami-068c0051b15cdb816 
 
 
 Apply the cluster configuration:
@@ -172,6 +169,7 @@ Apply the cluster configuration:
 
 kOps, the cluster is provisioned and becomes fully operational in approximately 5 minutes, enabling rapid environment setup.
 
+<img width="1920" height="761" alt="cluster in aws" src="https://github.com/user-attachments/assets/8603b554-0565-41ed-a5c0-0227ae1af626" />
 
 
 Verify cluster:
@@ -195,7 +193,7 @@ S3 as Cluster State Store
 
 The same S3 bucket configured earlier is used as the kOps state store
 
-export KOPS_STATE_STORE=s3://my-kops-terraform-state-bucket
+    export KOPS_STATE_STORE=s3://my-kops-terraform-state-bucket
 
 
 Application-Level Access
@@ -208,6 +206,7 @@ Verification
 
 aws s3 ls s3://my-kops-terraform-state-bucket
 kubectl get pods -A
+
 
 
 ### Step 3: Launch Jenkins
@@ -264,6 +263,7 @@ My Account → Security → Generate Token → Name: `mytoken` → Copy token
 
 ---
 
+	 
 ### Step 5: Configure Jenkins Plugins
 
 Manage Jenkins → Plugins → Available → Select below listed → Install and restart jenkins:
@@ -438,118 +438,68 @@ Checking DockerHub Registry images uploaded in the directed repo
 
 
 
-**Stage 11: Deploy to Tomcat**
+**Stage 11: Deploy to Kubernetes and ArgoCD**
 
-Installing in TOMCAT SERVER → connect →
+Install and Access Argo CD (GitOps CD)
+1️ Install Argo CD
 
-  1. Tomcat EC2 → connect 
-  2. Install Tomcat:
-    
-   ```bash
-   # 1. Install Java 17 (Amazon Corretto)
-yum install -y java-17-amazon-corretto-devel
+    kubectl create namespace argocd
 
-# 2. Download latest Tomcat 9
-wget https://downloads.apache.org/tomcat/tomcat-9/v9.0.112/bin/apache-tomcat-9.0.112.tar.gz
-
-# 3. Extract
-tar -xzf apache-tomcat-9.0.112.tar.gz
-
-# 4. Move to /opt (standard location)
-mv apache-tomcat-9.0.112 /opt/tomcat
-
-# 5. Create tomcat user
-groupadd -r tomcat
-useradd -r -g tomcat -s /bin/false -d /opt/tomcat tomcat
-chown -R tomcat:tomcat /opt/tomcat
-
-# 6. Fix tomcat-users.xml (add user OUTSIDE comments)
-cat > /opt/tomcat/conf/tomcat-users.xml << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<tomcat-users xmlns="http://tomcat.apache.org/xml"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
-              version="1.0">
-  <role rolename="manager-gui"/>
-  <role rolename="manager-script"/>
-  <user username="tomcat" password="admin@123" roles="manager-gui,manager-script"/>
-</tomcat-users>
-EOF
-
-# 7. Allow remote access to Manager (comment out IP restriction)
-sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/<!-- & -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
-sed -i 's/<\/Valve>/<\/Valve> -->/' /opt/tomcat/webapps/manager/META-INF/context.xml
-
-# 8. Create systemd service
-cat > /etc/systemd/system/tomcat.service << 'EOF'
-[Unit]
-Description=Apache Tomcat 9
-After=network.target
-
-[Service]
-Type=forking
-User=tomcat
-Group=tomcat
-Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
-Environment="CATALINA_HOME=/opt/tomcat"
-Environment="CATALINA_BASE=/opt/tomcat"
-ExecStart=/opt/tomcat/bin/startup.sh
-ExecStop=/opt/tomcat/bin/shutdown.sh
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# 9. Enable and start Tomcat
-systemctl daemon-reload
-systemctl enable tomcat
-systemctl start tomcat
-
-# 10. Open firewall
-firewall-cmd --add-port=8080/tcp --permanent
-firewall-cmd --reload
-
-# 11. Done!
-echo "Tomcat installed! Access:"
-echo "   Web: http://$(curl -s ifconfig.me):8080"
-echo "   Manager: http://$(curl -s ifconfig.me):8080/manager/html"
-echo "   User: tomcat | Pass: admin@123"
-   ```
-3. Wait 10 seconds → open in browser:
-   
-•	Tomcat Home: http://YOUR_IP:8080
-•	Manager GUI: http://YOUR_IP:8080/manager/html → Login: tomcat / admin@123
+    kubectl apply -n argocd \
+    -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 
-Check status tomcat
+Verify installation:
 
-   ```xml
-   # Check status
-   systemctl status tomcat
+kubectl get all -n argocd
 
-   # Check logs
-   journalctl -u tomcat -f
-   ```
-4. Restart Tomcat: `systemctl restart tomcat`
+2️ Expose Argo CD Server (LoadBalancer)
+
+    kubectl patch svc argocd-server -n argocd \
+    -p '{"spec": {"type": "LoadBalancer"}}'
 
 
-5.   Pipeline Syntax → deploy: Deploy war/ear to container
-   - WAR: `target/vprofile-v2.war`
-   - Context path: `vprofile`
-   - Tomcat URL: `http://<tomcat-ip>:8080`
-   - Credentials: Credentials → Add → Username/Password → `tomcat` / `admin@123` → ID: `tomcat-creds``tomcat-creds`
+    Install jq (required to parse JSON output):
 
-<img width="1902" height="874" alt="tomcat-home" src="https://github.com/user-attachments/assets/16d988dd-857e-4842-a1ee-aac66a4b82e2" />
+    sudo yum install jq -y
 
 
+Fetch the Argo CD LoadBalancer URL:
 
-Add generated step to pipeline  → it should look like this
+    kubectl get svc argocd-server -n argocd -o json \
+    | jq -r '.status.loadBalancer.ingress[0].hostname'
+  
 
-    deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'tomcat', path: '', url: 'http://<tomcat-ip>:8080')], contextPath: 'myapp', war: 'target/vprofile-v2.war'
+⏳ It may take 1–2 minutes for the LoadBalancer URL to be available.
 
----
+3️  Get Argo CD Admin Password
+
+     kubectl -n argocd get secret
+
+	 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e3dcd03d-04ab-406a-be53-5340cb1263bf" />
+
+Git Repository for Argo CD (GitOps)
+
+This project follows a GitOps-based deployment model using Argo CD, where Kubernetes application manifests are stored in a dedicated Git repository and treated as the single source of truth.
+
+Repository Structure
+
+    k8s-manifests/
+    ├── deployment.yml
+    └── service.yml
+
+Deployment Workflow
+
+Kubernetes manifests are committed and version-controlled in Git
+
+Argo CD continuously monitors the repository for changes
+
+Any update to the manifest files is automatically synchronized to the Kubernetes cluster
+
+Manual kubectl apply commands are not required after Argo CD is configured
+
+This approach ensures consistent, auditable, and automated deployments while eliminating configuration drift.
+
 
 ### Final Pipeline Success!
 
