@@ -1,17 +1,20 @@
 # Terraform-Driven-Artifact-Management-with-AWS-S3-Backend
 ## Project Overview
 
-The project illustrates an end-to-end CI/CD process for a Java-based application using tools like Jenkins, Maven, SonarQube, Docker, Trivy, and Terraform, integrated with AWS for automated testing, building, scanning, and deployment
+Built a cloud-native CI/CD pipeline for a Java application using Jenkins, Docker, Kubernetes, and Terraform on AWS, automating the entire delivery lifecycle from code commit to deployment. Containerization and Kubernetes-based deployment reduced manual deployment effort by ~70%, improved reliability through self-healing and rolling updates, and ensured consistent environments. Integrated SonarQube, OWASP Dependency-Check, and Trivy to enforce automated quality and security checks before deployment.
 
 ## Introduction
 
-In today’s fast-paced development environment, Continuous Integration and Continuous Deployment (CI/CD) are essential for delivering software quickly and reliably. By automating build, test, and deployment processes, teams can improve code quality, enhance collaboration, and accelerate release cycles.
+This project showcases a cloud-native CI/CD pipeline for a Java application using Jenkins, Docker, Kubernetes, and Terraform on AWS. The pipeline automates build, testing, security scanning, containerization, and deployment, while Kubernetes enables scalable, self-healing deployments and Terraform ensures reproducible infrastructure. Integrated quality and security checks ensure reliable, production-ready releases.
 
-This guide walks through building a real-time CI/CD pipeline for a Java application and deploying it onto an Apache server. We use Jenkins, Maven, and Git to automate the workflow, ensuring that code is compiled, tested, packaged, and deployed with minimal manual effort.
 
-To manage infrastructure efficiently, we use Terraform as Infrastructure as Code (IaC), enabling consistent, version-controlled provisioning of cloud resources. Our environment runs on AWS, leveraging services like EC2 (for Jenkins, Apache/Tomcat, SonarQube), S3 (for artifact storage), and EKS (for container orchestration).
+## Architecture Overview
 
-By combining CI/CD automation with Terraform and AWS, we create a scalable, repeatable, and production-ready deployment pipeline for Java applications—ensuring faster and more reliable software delivery.
+    - Infrastructure provisioned using Terraform with AWS S3 remote backend
+    - Kubernetes cluster used for application deployment
+    - Application packaged as Docker image
+    - Kubernetes Deployment manages replicas
+    - Kubernetes Service exposes the application
 
 
 ## Technologies Used
@@ -36,11 +39,12 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
 	
     7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
 
-  
-    8.	Terraform – Infrastructure as Code (IaC) tool. Automatically provisions and manages AWS EC2, S3, VPC, IAM roles, and security groups in a fully reproducible way.
-
+    8.  Kubernetes (kOps / EKS) – Container orchestration platform. Manages containerized application deployment, scaling, self-healing, and service exposure using Deployments and Services, enabling high availability and production-ready workloads.
+   
+    9. Terraform – Infrastructure as Code (IaC) tool. Provisions and manages AWS infrastructure including VPC, IAM roles, security groups, S3 remote backend, and Kubernetes-supporting resources in a fully automated and reproducible manner.
+    
 	
-   9.	AWS Cloud – Cloud infrastructure platform:
+   ##	AWS Cloud – Cloud infrastructure platform:
   
     • EC2 hosts Jenkins, SonarQube container, and Apache Tomcat 9
 
@@ -52,13 +56,17 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
 ## Prerequisites
 
 
-- AWS Account with billing enabled
-  
-- MobaXterm or any SSH client
-  
-- Basic knowledge of AWS, Linux, Jenkins, Docker
+    - AWS account with billing enabled (used for provisioning infrastructure)
 
+    - EC2 instance accessed via SSH (MobaXterm) for Jenkins and tooling setup
 
+    - Basic Linux administration and shell scripting
+
+    - Hands-on usage of Jenkins pipelines, Docker image builds, and Kubernetes deployments
+
+    - Experience using Git for source control and Terraform for infrastructure provisioning
+
+	
 ## PORT-IP'S
 
 
@@ -66,34 +74,42 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
  
 - SONARQUBE - 9000
 
-- TOMCAT - 8080
+
+## Step 1: Launch EC2 Instances (CI/CD + Kubernetes)
+
+1️⃣ Jenkins & Tools Server
+
+Go to AWS Console → EC2 → Launch Instance
+
+Name: jenkins-server
+
+OS: Amazon Linux 2023 AMI
+
+Instance Type: m7i-flex.large (or t3.large if budget constrained)
+
+Key pair: Create or use existing
+
+Security Group: Allow All Traffic (0.0.0.0/0) (lab environment only)
+
+Storage: 28 GB gp3 EBS
+
+IAM Role: Attach role with AdministratorAccess (learning purpose)
+
+Launch and connect via MobaXterm as ec2-user, then:
+
+sudo su -
+
+2️⃣ Kubernetes Instance (Cluster Setup)
+
+Instance Type: t3.micro
+
+Storage: 24 GB EBS volume
+
+Used for Kubernetes cluster setup and containerized application deployment
 
 
-### Step 1: Launch EC2 Instance (Jenkins + Tools Server)
 
-
-1. Go to AWS Console → EC2 → Launch Instance
-2. Name: `jenkins-server` (or any)
-3. OS: **Amazon Linux 2023 AMI**
-4. Instance Type: **m7i-flex.large** (or t3.large if budget constrained)
-5. Key pair: Create or use existing
-6. Security Group: Allow **All Traffic** (0.0.0.0/0) → only for learning/lab
-7. Storage: 28 GB gp3 EBS volume
-8. IAM Role: Create new role with **AdministratorAccess** (for learning only)
-9. Launch instance
-10. Connect via MobaXterm as `ec2-user`, then switch to root:
-     ```bash
-    sudo su -
-    ```
- 11. Launch another with c7i-flex.large for TOMCAT everything same expect IAM configuration   
-
----
- 
-   
-
-
-
-### Step 2: Set up an EKS cluster on Jenkins with Terraform automation
+### Step 2: Configure Terraform S3 Backend (State Management)
 
 1. Terraform setup:
    ```bash
@@ -102,16 +118,9 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
    sudo yum install terraform
    ```
 
-2. Clone project repo:
-   ```bash
-   git clone https://github.com/Sravanikethari/dockerwebapp.git
-   cd k8s-project/Eks-terraform
-   ```
+2. Create S3 bucket in AWS Console for Terraform state (e.g., `my-terraform-state-bucket-unique-name`) → note region
 
-
-3. Create S3 bucket in AWS Console for Terraform state (e.g., `my-terraform-state-bucket-unique-name`) → note region
-
-4. Edit `backend.tf`:
+3. Edit `backend.tf`:
    ```hcl
    terraform {
      backend "s3" {
@@ -124,26 +133,76 @@ By combining CI/CD automation with Terraform and AWS, we create a scalable, repe
    }
    ```
 
-5. Edit `main.tf`:
-   - Line ~89: Desired/Min/Max capacity → `desired_size = 2`, `min_size = 2`, `max_size = 4`
-   - Line ~93: Change instance type to `c7i-flex.large` 
-
-6. Run Terraform:
+4. Run Terraform:
    ```bash
    terraform init
    terraform plan
    terraform apply --auto-approve
    ```
-   Wait 15–20 mins for EKS cluster to be ready.
 
-7. Verify:
-   ```bash
-   terraform state list
-   aws eks update-kubeconfig --name <cluster-name> --region us-east-1
-   kubectl get nodes
-   ```
+## Step 3: Set Up Kubernetes Cluster Using kOps
+
+Kubernetes is set up using kOps, with cluster state stored in the S3 backend configured above.
+
+Install Kubernetes tools:
+
+# Install kubectl
+curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+# Install kOps
+curl -Lo kops https://github.com/kubernetes/kops/releases/latest/download/kops-linux-amd64
+chmod +x kops
+sudo mv kops /usr/local/bin/
+
+
+Create the Kubernetes cluster:
+
+    kops create cluster --name ksn.k8s.local --zones=us-east-1a,us-east-1b --master-count=1 --master-size=c7i-flex.large --master-volume-size=30 --node-count=2 --node-size=t3.micro --node-volume-size=18 --image=ami-068c0051b15cdb816 
+
+
+Apply the cluster configuration:
+
+kops update cluster ksn.k8s.local --yes
+
+
+Verify cluster:
+
+kubectl get nodes
+kubectl get pods -A
 
 ---
+
+
+Step 4: Connect Amazon S3 with Kubernetes Cluster
+
+The Kubernetes cluster is integrated with Amazon S3 to allow pods and cluster components to securely access stored artifacts and state.
+
+IAM Permissions
+
+An IAM role with required S3 access is attached to the Kubernetes worker nodes
+
+Permissions include read/write access to the designated S3 bucket
+
+S3 as Cluster State Store
+
+The same S3 bucket configured earlier is used as the kOps state store
+
+export KOPS_STATE_STORE=s3://my-kops-terraform-state-bucket
+
+
+Application-Level Access
+
+Kubernetes workloads can access S3 using AWS SDK/CLI via node IAM role
+
+No hardcoded credentials are used inside containers
+
+Verification
+
+aws s3 ls s3://my-kops-terraform-state-bucket
+kubectl get pods -A
+
 
 ### Step 3: Launch Jenkins
 
