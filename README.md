@@ -501,23 +501,12 @@ Manual kubectl apply commands are not required after Argo CD is configured
 This approach ensures consistent, auditable, and automated deployments while eliminating configuration drift.
 
 
-### Final Pipeline Success!
-
-<img width="1900" height="802" alt="Full-deploy" src="https://github.com/user-attachments/assets/4d5846b0-ba14-4c0f-8a2b-c559069ef3b7" />
-
-
-
-After building the pipeline:
-- Application successfully deployed
-- Accessible at: `http://<tomcat-public-ip>:8080/vprofile`
-
-<img width="1920" height="872" alt="live-page" src="https://github.com/user-attachments/assets/9477eb9b-ddf2-4470-9c7e-39c48ab9e9a5" />
+<img width="1920" height="974" alt="ksn result" src="https://github.com/user-attachments/assets/27dcf541-41ba-4a96-ad24-3232fa901c0b" />
 
 
 ## Conclusion
 
-This project successfully demonstrates a production-ready, secure, and fully automated approach to artifact management by combining Infrastructure as Code (Terraform) with centralized AWS S3 storage. By eliminating manual uploads, enforcing least-privilege IAM policies, enabling versioning, and implementing lifecycle rules, the solution ensures consistency, auditability, cost-efficiency, and zero-downtime integration into existing Jenkins CI/CD pipelines.
-
+This project demonstrates a cloud-native, production-ready CI/CD and deployment workflow by combining Infrastructure as Code (Terraform), containerization, Kubernetes, and GitOps with Argo CD. The solution eliminates manual deployments, enforces secure and version-controlled configurations, and ensures consistent, automated delivery through Jenkins-driven CI pipelines and Argo CD–managed Kubernetes deployments. By leveraging AWS services such as S3, IAM, and Kubernetes infrastructure, the project achieves scalability, auditability, and reliable continuous delivery.
  
 ---
 
