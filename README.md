@@ -38,7 +38,7 @@ This project showcases a cloud-native CI/CD pipeline for a Java application usin
 
     7.	Trivy – Container image security scanner. Quickly identifies OS and application-level vulnerabilities in Docker images before pushing to registry.
 
-    8.  Kubernetes (kOps / EKS) – Container orchestration platform. Manages containerized application deployment, scaling, self-healing, and service exposure using Deployments and Services, enabling high availability and production-ready workloads.
+    8.  Kubernetes (kOps) – Container orchestration platform. Manages containerized application deployment, scaling, self-healing, and service exposure using Deployments and Services, enabling high availability and production-ready workloads.
    
     9. Argo CD – GitOps continuous delivery tool. Automatically synchronizes Kubernetes manifests from Git repositories to the cluster, ensuring the desired application state and eliminating manual deployments.
 
@@ -48,6 +48,7 @@ This project showcases a cloud-native CI/CD pipeline for a Java application usin
    ##	AWS Cloud – Cloud infrastructure platform:
   
     • EC2 hosts Jenkins, SonarQube container, and Apache Tomcat 9
+
 
     • S3 stores versioned build artifacts securely
   
@@ -438,7 +439,7 @@ Checking DockerHub Registry images uploaded in the directed repo
 
 
 
-**Stage 11: Deploy to Kubernetes and ArgoCD**
+**Stage 11: Configure Argo CD for GitOps Deployment**
 
 Install and Access Argo CD (GitOps CD)
 1️ Install Argo CD
