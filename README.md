@@ -1,4 +1,4 @@
-# Kubernetes-Driven-Artifact-Management-with-AWS-S3-Backend
+# DevSecOps CI/CD Pipeline with GitOps on Kubernetes
 ## Project Overview
 
 Built a cloud-native CI/CD pipeline for a Java application using Jenkins, Docker, Kubernetes, and Terraform on AWS, automating the entire delivery lifecycle from code commit to deployment. Containerization and Kubernetes-based deployment reduced manual deployment effort by ~70%, improved reliability through self-healing and rolling updates, and ensured consistent environments. Integrated SonarQube, OWASP Dependency-Check, and Trivy to enforce automated quality and security checks before deployment.
